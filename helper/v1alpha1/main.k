@@ -2,10 +2,10 @@
 # Helper functions
 _build_sky_labels: (any, str, str, str) -> {str: str} = lambda labels, n, r, z {
   (labels if labels else {}) | {
-    "skycluster.io/managed-by": "skycluster",
-    "skycluster.io/provider-name": n,
-    "skycluster.io/provider-region": r,
-    "skycluster.io/provider-zone": z,
+    "skycluster.io/managed-by" = "skycluster",
+    "skycluster.io/provider-name" = n,
+    "skycluster.io/provider-region" = r,
+    "skycluster.io/provider-zone" = z,
   }
 }
 
@@ -22,5 +22,5 @@ _is_paused_label: ({:}) -> {:} = lambda labels: {:} -> {:} {
 }
 
 _filter_sky_labels: ({:}) -> {:} = lambda labels: {:} -> {:} {
-  {k: v for k, v in labels if "skycluster.io" in k.lower()}
+  {k = v for k, v in labels if "skycluster.io" in k.lower()}
 }
