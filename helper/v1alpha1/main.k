@@ -1,19 +1,24 @@
 
 # Helper functions
-_build_sky_labels: (any, str, str, str) -> {str: str} = lambda labels, n, r, z {
+_build_default_labels: (any, str, str, str, str) -> {str: str} = lambda labels, p, r, z, n {
+  _l = [
+    "skycluster.io/provider-platform",
+    "skycluster.io/provider-region",
+    "skycluster.io/provider-zone",
+    "skycluster.io/provider-name",
+  ]
+  _v = [p, r, z, n,]
+  _a ={_l[i] = _v[i] for i, j in _v if j and j != ""}
   (labels if labels else {}) | {
     "skycluster.io/managed-by" = "skycluster",
-    "skycluster.io/provider-name" = n,
-    "skycluster.io/provider-region" = r,
-    "skycluster.io/provider-zone" = z,
-  }
+  } | _a
 }
 
 # Default labels for SkyCluster resources
-# Input: provider name, region, zone
+# Input: provider platform, region, zone, name
 # Output: labels dictionary
-_default_sky_labels: (str, str, str) -> {str: str} = lambda n, r, z {
-  _build_sky_labels({}, n, r, z)
+_set_default_labels: (str, str, str, str) -> {str: str} = lambda p, r, z, n {
+  _build_default_labels({}, p, r, z, n)
 }
 
 # Set composition resource name
@@ -29,4 +34,16 @@ _is_paused_label: ({:}) -> {:} = lambda labels: {:} -> {:} {
 # Filter SkyCluster labels from a dictionary
 _filter_sky_labels: ({:}) -> {:} = lambda labels: {:} -> {:} {
   {k = v for k, v in labels if "skycluster.io" in k.lower()}
+}
+
+# Filter default labels from a dictionary
+# A provider is identified by its platform, region, zone uniquely
+_filter_default_labels: ({:}) -> {:} = lambda labels: {:} -> {:} {
+  ll = [
+    "skycluster.io/provider-platform",
+    "skycluster.io/provider-region",
+    "skycluster.io/provider-zone",
+    "skycluster.io/managed-by",
+  ]
+  {k = v for k, v in labels if k.lower() in ll}
 }
