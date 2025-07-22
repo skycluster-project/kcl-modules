@@ -50,5 +50,5 @@ _filter_default_labels: ({:}) -> {:} = lambda labels: {:} -> {:} {
 _ready = lambda o: any -> bool {
     _status = o?.Resource?.status
     _objstatus = _status?.conditions or []
-    len(_objstatus) > 0 and all c in _objstatus {c.status == "True"} and _status
+    o and _status and len(_objstatus) > 0 and all_true([c.status == "True" for c in _objstatus])
 }
