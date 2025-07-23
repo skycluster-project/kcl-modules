@@ -47,6 +47,11 @@ _filter_default_labels: ({:}) -> {:} = lambda labels: {:} -> {:} {
     {k = v for k, v in labels if k.lower() in ll}
 }
 
+# Filter labels based on a list of fields
+_filter_labels: ({str:str},list) -> {:} = lambda labels: {:}, fields -> {:} {
+    {k = v for k, v in labels if k.lower() in fields}
+}
+
 _ready = lambda o: any -> bool {
     _status = o?.Resource?.status
     _objstatus = _status?.conditions or []
