@@ -5,7 +5,7 @@ _build_default_labels: (any, str, str, str, str) -> {str: str} = lambda labels, 
     "skycluster.io/provider-platform",
     "skycluster.io/provider-region",
     "skycluster.io/provider-zone",
-    "skycluster.io/provider-name",
+    "skycluster.io/application-name",
   ]
   _v = [p, r, z, n,]
   _a ={_l[i] = _v[i] for i, j in _v if j and j != ""}
@@ -48,7 +48,7 @@ _filter_default_labels: ({:}) -> {:} = lambda labels: {:} -> {:} {
 }
 
 # Filter labels based on a list of fields
-_filter_labels: ({str:str},list) -> {:} = lambda labels: {:}, fields -> {:} {
+_filter_labels: ({str:str},[str]) -> {:} = lambda labels: {:}, fields -> {:} {
     {k = v for k, v in labels if k.lower() in fields}
 }
 
