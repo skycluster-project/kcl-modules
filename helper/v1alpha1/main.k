@@ -5,7 +5,7 @@ _build_default_labels: (any, str, str, str, str) -> {str: str} = lambda labels, 
     "skycluster.io/provider-platform",
     "skycluster.io/provider-region",
     "skycluster.io/provider-zone",
-    "skycluster.io/application-name",
+    "skycluster.io/application-id",
   ]
   _v = [p, r, z, n,]
   _a ={_l[i] = _v[i] for i, j in _v if j and j != ""}
@@ -39,6 +39,7 @@ _filter_sky_labels: ({:}) -> {:} = lambda labels: {:} -> {:} {
 # A provider is identified by its platform, region, zone uniquely
 _filter_default_labels: ({:}) -> {:} = lambda labels: {:} -> {:} {
     ll = [
+        "skycluster.io/application-id",
         "skycluster.io/provider-platform",
         "skycluster.io/provider-region",
         "skycluster.io/provider-zone",
