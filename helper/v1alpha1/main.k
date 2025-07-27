@@ -50,7 +50,7 @@ _filter_default_labels: ({:}) -> {:} = lambda labels: {:} -> {:} {
 
 # Filter labels based on a list of fields
 _filter_labels: ({str:str},[str]) -> {:} = lambda labels: {:}, fields -> {:} {
-    {k = v for k, v in labels if k.lower() in fields}
+    {k = v for k, v in labels if any_true([f.lower() in k.lower() for f in fields])}
 }
 
 _ready = lambda o: any -> bool {
