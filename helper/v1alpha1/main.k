@@ -1,3 +1,4 @@
+import yaml
 
 # Helper functions
 _build_default_labels: (any, str, str, str, str) -> {str: str} = lambda labels, p, r, z, n {
@@ -57,4 +58,25 @@ _ready = lambda o: any -> bool {
     _status = o?.Resource?.status
     _objstatus = _status?.conditions or []
     o and _status and len(_objstatus) > 0 and all_true([c.status == "True" for c in _objstatus])
+}
+
+_append_init_scripts: (any) -> str = lambda _scripts {   
+    _writeFiles = [wf for f in _scripts for dc in yaml.decode(f) if dc and "write_files" in dc for wf in dc["write_files"]]
+    
+    _runCmds = [cmd for f in _scripts for dc in yaml.decode(f) if dc and "runcmd" in dc for cmd in dc["runcmd"]]
+
+    _yamlOut = yaml.encode({
+        "write_files": _writeFiles,
+        "runcmd": _runCmds,
+    })
+    
+    """\
+    #cloud-config
+    {}
+    """.format(_yamlOut)
+}
+
+_select_init_scripts: (any, [str]) -> str = lambda _scripts, names {
+    _selected = [s for s in _scripts if s and names.lower() in s.metadata?.labels["skycluster.io/script-init"]]
+    _append_init_scripts(_selected) if len(_selected) > 0 else Undefined
 }
