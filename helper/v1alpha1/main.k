@@ -60,10 +60,10 @@ _ready = lambda o: any -> bool {
     o and _status and len(_objstatus) > 0 and all_true([c.status == "True" for c in _objstatus])
 }
 
-_append_init_scripts: (any) -> str = lambda _scripts {   
-    _writeFiles = [wf for s in _scripts for dc in yaml.decode(s) if dc and "write_files" in dc for wf in dc["write_files"]]
+_append_init_scripts: (any) -> str = lambda _yamlScripts {   
+    _writeFiles = [v for y in _yamlScripts for k, v in y if k == "write_files"]
     
-    _runCmds = [cmd for f in _scripts for dc in yaml.decode(f) if dc and "runcmd" in dc for cmd in dc["runcmd"]]
+    _runCmds = [v for y in _yamlScripts for k, v in y if k == "runcmd"]
 
     _yamlOut = yaml.encode({
         "write_files": _writeFiles,
@@ -77,6 +77,7 @@ _append_init_scripts: (any) -> str = lambda _scripts {
 }
 
 _select_init_scripts: (any, [str]) -> str = lambda _scripts, names {
-    _selected = [s["cloud-init"] for s in _scripts for n in names if s and n.lower() == s.metadata?.labels["skycluster.io/script-init"]]
-    _append_init_scripts(_selected) if len(_selected) > 0 else Undefined
+    _selected = [s.data?["cloud-init"] for s in _scripts for n in names if s and n.lower() == s.metadata?.labels["skycluster.io/script-init"]]
+    _yamls = [yaml.decode(s) for s in _selected if s]
+    _append_init_scripts(_yamls) if len(_selected) > 0 else Undefined
 }
