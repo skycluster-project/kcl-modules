@@ -77,6 +77,6 @@ _append_init_scripts: (any) -> str = lambda _scripts {
 }
 
 _select_init_scripts: (any, [str]) -> str = lambda _scripts, names {
-    _selected = [s for s in _scripts if s and names.lower() in s.metadata?.labels["skycluster.io/script-init"]]
+    _selected = [s for s in _scripts for n in names if s and n.lower() == s.metadata?.labels["skycluster.io/script-init"]]
     _append_init_scripts(_selected) if len(_selected) > 0 else Undefined
 }
