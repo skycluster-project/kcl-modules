@@ -61,19 +61,19 @@ _ready = lambda o: any -> bool {
 }
 
 _append_init_scripts: (any) -> str = lambda _yamlScripts {   
-    _writeFiles = [v for y in _yamlScripts for k, v in y if k == "write_files"]
+    _writeFiles = [vv for y in _yamlScripts for k, v in y if k == "write_files" for vv in v]
     
-    _runCmds = [v for y in _yamlScripts for k, v in y if k == "runcmd"]
+    _runCmds = [vv for y in _yamlScripts for k, v in y if k == "runcmd" for vv in v]
 
     _yamlOut = yaml.encode({
         "write_files": _writeFiles,
         "runcmd": _runCmds,
     })
     
-    """\
-    #cloud-config
-    {}
-    """.format(_yamlOut)
+"""\
+#cloud-config
+{}
+""".format(_yamlOut)
 }
 
 _select_init_scripts: (any, [str]) -> str = lambda _scripts, names {
