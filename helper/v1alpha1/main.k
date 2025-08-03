@@ -61,7 +61,7 @@ _ready = lambda o: any -> bool {
 }
 
 _append_init_scripts: (any) -> str = lambda _scripts {   
-    _writeFiles = [wf for f in _scripts for dc in yaml.decode(f) if dc and "write_files" in dc for wf in dc["write_files"]]
+    _writeFiles = [wf for s in _scripts for dc in yaml.decode(s) if dc and "write_files" in dc for wf in dc["write_files"]]
     
     _runCmds = [cmd for f in _scripts for dc in yaml.decode(f) if dc and "runcmd" in dc for cmd in dc["runcmd"]]
 
@@ -77,6 +77,6 @@ _append_init_scripts: (any) -> str = lambda _scripts {
 }
 
 _select_init_scripts: (any, [str]) -> str = lambda _scripts, names {
-    _selected = [s for s in _scripts for n in names if s and n.lower() == s.metadata?.labels["skycluster.io/script-init"]]
+    _selected = [s["cloud-init"] for s in _scripts for n in names if s and n.lower() == s.metadata?.labels["skycluster.io/script-init"]]
     _append_init_scripts(_selected) if len(_selected) > 0 else Undefined
 }
