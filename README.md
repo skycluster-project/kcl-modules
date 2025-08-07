@@ -11,6 +11,13 @@ up dependency add xpkg.upbound.io/upbound/provider-aws-ec2:v1
 up dependency add xpkg.upbound.io/upbound/provider-aws-sqs:v1
 up dependency add xpkg.upbound.io/upbound/provider-aws-cloudwatch:v1
 
+# xpkg.upbound.io/upbound/provider-azure-containerservice:v1
+# xpkg.upbound.io/upbound/provider-azure-compute:v1
+
+# xpkg.upbound.io/upbound/provider-gcp-compute:v1.14.1
+# xpkg.upbound.io/upbound/provider-gcp-gke:v1
+# xpkg.upbound.io/upbound/provider-gcp-container:v1
+
 # Find dependencies located in .up folder.
 ```
 
@@ -19,5 +26,5 @@ instances of old commit with the new one:
 
 ```bash
 # 's/oldCommit/newCommit/g' {} +
-find ./ -type f -exec sed -i 's/802b17c/1b426db/g' {} +
+find ./ -type f -exec sed -i 's/1b426db/d5febc7/g' {} +
 ```
