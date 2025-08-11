@@ -66,6 +66,8 @@ schema CloudplatformGcpUpboundIoV1beta1FolderSpec:
         and this one: https://github.com/crossplane/crossplane/blob/444267e84783136daa93568b364a5f01228cacbe/design/one-pager-ignore-changes.md
     providerConfigRef : CloudplatformGcpUpboundIoV1beta1FolderSpecProviderConfigRef, default is Undefined, optional
         provider config ref
+    publishConnectionDetailsTo : CloudplatformGcpUpboundIoV1beta1FolderSpecPublishConnectionDetailsTo, default is Undefined, optional
+        publish connection details to
     writeConnectionSecretToRef : CloudplatformGcpUpboundIoV1beta1FolderSpecWriteConnectionSecretToRef, default is Undefined, optional
         write connection secret to ref
     """
@@ -81,6 +83,8 @@ schema CloudplatformGcpUpboundIoV1beta1FolderSpec:
 
     providerConfigRef?: CloudplatformGcpUpboundIoV1beta1FolderSpecProviderConfigRef
 
+    publishConnectionDetailsTo?: CloudplatformGcpUpboundIoV1beta1FolderSpecPublishConnectionDetailsTo
+
     writeConnectionSecretToRef?: CloudplatformGcpUpboundIoV1beta1FolderSpecWriteConnectionSecretToRef
 
 
@@ -90,8 +94,6 @@ schema CloudplatformGcpUpboundIoV1beta1FolderSpecForProvider:
 
     Attributes
     ----------
-    deletionProtection : bool, default is Undefined, optional
-        When the field is set to false, deleting the folder is allowed. Default value is true.
     displayName : str, default is Undefined, optional
         The folder’s display name.
         A folder’s display name must be unique amongst its siblings, e.g. no two folders with the same parent can share the same display name. The display name must start and end with a letter or digit, may contain letters, digits, spaces, hyphens and underscores and can be no longer than 30 characters.
@@ -102,12 +104,8 @@ schema CloudplatformGcpUpboundIoV1beta1FolderSpecForProvider:
         parent ref
     parentSelector : CloudplatformGcpUpboundIoV1beta1FolderSpecForProviderParentSelector, default is Undefined, optional
         parent selector
-    tags : {str:str}, default is Undefined, optional
-        A map of resource manager tags. Resource manager tag keys and values have the same definition as resource manager tags. Keys must be in the format tagKeys/{tag_key_id}, and values are in the format tagValues/456. The field is ignored when empty. The field is immutable and causes resource replacement when  mutated. This field is only set at create time and modifying this field after creation will trigger recreation. To apply tags to an existing resource, see the google_tags_tag_value resource.
     """
 
-
-    deletionProtection?: bool
 
     displayName?: str
 
@@ -116,8 +114,6 @@ schema CloudplatformGcpUpboundIoV1beta1FolderSpecForProvider:
     parentRef?: CloudplatformGcpUpboundIoV1beta1FolderSpecForProviderParentRef
 
     parentSelector?: CloudplatformGcpUpboundIoV1beta1FolderSpecForProviderParentSelector
-
-    tags?: {str:str}
 
 
 schema CloudplatformGcpUpboundIoV1beta1FolderSpecForProviderParentRef:
@@ -224,8 +220,6 @@ schema CloudplatformGcpUpboundIoV1beta1FolderSpecInitProvider:
 
     Attributes
     ----------
-    deletionProtection : bool, default is Undefined, optional
-        When the field is set to false, deleting the folder is allowed. Default value is true.
     displayName : str, default is Undefined, optional
         The folder’s display name.
         A folder’s display name must be unique amongst its siblings, e.g. no two folders with the same parent can share the same display name. The display name must start and end with a letter or digit, may contain letters, digits, spaces, hyphens and underscores and can be no longer than 30 characters.
@@ -236,12 +230,8 @@ schema CloudplatformGcpUpboundIoV1beta1FolderSpecInitProvider:
         parent ref
     parentSelector : CloudplatformGcpUpboundIoV1beta1FolderSpecInitProviderParentSelector, default is Undefined, optional
         parent selector
-    tags : {str:str}, default is Undefined, optional
-        A map of resource manager tags. Resource manager tag keys and values have the same definition as resource manager tags. Keys must be in the format tagKeys/{tag_key_id}, and values are in the format tagValues/456. The field is ignored when empty. The field is immutable and causes resource replacement when  mutated. This field is only set at create time and modifying this field after creation will trigger recreation. To apply tags to an existing resource, see the google_tags_tag_value resource.
     """
 
-
-    deletionProtection?: bool
 
     displayName?: str
 
@@ -250,8 +240,6 @@ schema CloudplatformGcpUpboundIoV1beta1FolderSpecInitProvider:
     parentRef?: CloudplatformGcpUpboundIoV1beta1FolderSpecInitProviderParentRef
 
     parentSelector?: CloudplatformGcpUpboundIoV1beta1FolderSpecInitProviderParentSelector
-
-    tags?: {str:str}
 
 
 schema CloudplatformGcpUpboundIoV1beta1FolderSpecInitProviderParentRef:
@@ -387,12 +375,112 @@ schema CloudplatformGcpUpboundIoV1beta1FolderSpecProviderConfigRefPolicy:
     resolve?: "Always" | "IfNotPresent"
 
 
+schema CloudplatformGcpUpboundIoV1beta1FolderSpecPublishConnectionDetailsTo:
+    r"""
+    PublishConnectionDetailsTo specifies the connection secret config which
+    contains a name, metadata and a reference to secret store config to
+    which any connection details for this managed resource should be written.
+    Connection details frequently include the endpoint, username,
+    and password required to connect to the managed resource.
+
+    Attributes
+    ----------
+    configRef : CloudplatformGcpUpboundIoV1beta1FolderSpecPublishConnectionDetailsToConfigRef, default is Undefined, optional
+        config ref
+    metadata : CloudplatformGcpUpboundIoV1beta1FolderSpecPublishConnectionDetailsToMetadata, default is Undefined, optional
+        metadata
+    name : str, default is Undefined, required
+        Name is the name of the connection secret.
+    """
+
+
+    configRef?: CloudplatformGcpUpboundIoV1beta1FolderSpecPublishConnectionDetailsToConfigRef
+
+    metadata?: CloudplatformGcpUpboundIoV1beta1FolderSpecPublishConnectionDetailsToMetadata
+
+    name: str
+
+
+schema CloudplatformGcpUpboundIoV1beta1FolderSpecPublishConnectionDetailsToConfigRef:
+    r"""
+    SecretStoreConfigRef specifies which secret store config should be used
+    for this ConnectionSecret.
+
+    Attributes
+    ----------
+    name : str, default is Undefined, required
+        Name of the referenced object.
+    policy : CloudplatformGcpUpboundIoV1beta1FolderSpecPublishConnectionDetailsToConfigRefPolicy, default is Undefined, optional
+        policy
+    """
+
+
+    name: str
+
+    policy?: CloudplatformGcpUpboundIoV1beta1FolderSpecPublishConnectionDetailsToConfigRefPolicy
+
+
+schema CloudplatformGcpUpboundIoV1beta1FolderSpecPublishConnectionDetailsToConfigRefPolicy:
+    r"""
+    Policies for referencing.
+
+    Attributes
+    ----------
+    resolution : str, default is "Required", optional
+        Resolution specifies whether resolution of this reference is required.
+        The default is 'Required', which means the reconcile will fail if the
+        reference cannot be resolved. 'Optional' means this reference will be
+        a no-op if it cannot be resolved.
+    resolve : str, default is Undefined, optional
+        Resolve specifies when this reference should be resolved. The default
+        is 'IfNotPresent', which will attempt to resolve the reference only when
+        the corresponding field is not present. Use 'Always' to resolve the
+        reference on every reconcile.
+    """
+
+
+    resolution?: "Required" | "Optional" = "Required"
+
+    resolve?: "Always" | "IfNotPresent"
+
+
+schema CloudplatformGcpUpboundIoV1beta1FolderSpecPublishConnectionDetailsToMetadata:
+    r"""
+    Metadata is the metadata for connection secret.
+
+    Attributes
+    ----------
+    annotations : {str:str}, default is Undefined, optional
+        Annotations are the annotations to be added to connection secret.
+        - For Kubernetes secrets, this will be used as "metadata.annotations".
+        - It is up to Secret Store implementation for others store types.
+    labels : {str:str}, default is Undefined, optional
+        Labels are the labels/tags to be added to connection secret.
+        - For Kubernetes secrets, this will be used as "metadata.labels".
+        - It is up to Secret Store implementation for others store types.
+    $type : str, default is Undefined, optional
+        Type is the SecretType for the connection secret.
+        - Only valid for Kubernetes Secret Stores.
+    """
+
+
+    annotations?: {str:str}
+
+    labels?: {str:str}
+
+    $type?: str
+
+
 schema CloudplatformGcpUpboundIoV1beta1FolderSpecWriteConnectionSecretToRef:
     r"""
     WriteConnectionSecretToReference specifies the namespace and name of a
     Secret to which any connection details for this managed resource should
     be written. Connection details frequently include the endpoint, username,
     and password required to connect to the managed resource.
+    This field is planned to be replaced in a future release in favor of
+    PublishConnectionDetailsTo. Currently, both could be set independently
+    and connection details would be published to both without affecting
+    each other.
 
     Attributes
     ----------
@@ -441,8 +529,6 @@ schema CloudplatformGcpUpboundIoV1beta1FolderStatusAtProvider:
     createTime : str, default is Undefined, optional
         Timestamp when the Folder was created. Assigned by the server.
         A timestamp in RFC3339 UTC "Zulu" format, accurate to nanoseconds. Example: "2014-10-02T15:01:23.045123456Z".
-    deletionProtection : bool, default is Undefined, optional
-        When the field is set to false, deleting the folder is allowed. Default value is true.
     displayName : str, default is Undefined, optional
         The folder’s display name.
         A folder’s display name must be unique amongst its siblings, e.g. no two folders with the same parent can share the same display name. The display name must start and end with a letter or digit, may contain letters, digits, spaces, hyphens and underscores and can be no longer than 30 characters.
@@ -457,14 +543,10 @@ schema CloudplatformGcpUpboundIoV1beta1FolderStatusAtProvider:
     parent : str, default is Undefined, optional
         The resource name of the parent Folder or Organization.
         Must be of the form folders/{folder_id} or organizations/{org_id}.
-    tags : {str:str}, default is Undefined, optional
-        A map of resource manager tags. Resource manager tag keys and values have the same definition as resource manager tags. Keys must be in the format tagKeys/{tag_key_id}, and values are in the format tagValues/456. The field is ignored when empty. The field is immutable and causes resource replacement when  mutated. This field is only set at create time and modifying this field after creation will trigger recreation. To apply tags to an existing resource, see the google_tags_tag_value resource.
     """
 
 
     createTime?: str
-
-    deletionProtection?: bool
 
     displayName?: str
 
@@ -477,8 +559,6 @@ schema CloudplatformGcpUpboundIoV1beta1FolderStatusAtProvider:
     name?: str
 
     parent?: str
-
-    tags?: {str:str}
 
 
 schema CloudplatformGcpUpboundIoV1beta1FolderStatusConditionsItems0:

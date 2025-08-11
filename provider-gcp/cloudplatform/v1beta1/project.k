@@ -66,6 +66,8 @@ schema CloudplatformGcpUpboundIoV1beta1ProjectSpec:
         and this one: https://github.com/crossplane/crossplane/blob/444267e84783136daa93568b364a5f01228cacbe/design/one-pager-ignore-changes.md
     providerConfigRef : CloudplatformGcpUpboundIoV1beta1ProjectSpecProviderConfigRef, default is Undefined, optional
         provider config ref
+    publishConnectionDetailsTo : CloudplatformGcpUpboundIoV1beta1ProjectSpecPublishConnectionDetailsTo, default is Undefined, optional
+        publish connection details to
     writeConnectionSecretToRef : CloudplatformGcpUpboundIoV1beta1ProjectSpecWriteConnectionSecretToRef, default is Undefined, optional
         write connection secret to ref
     """
@@ -80,6 +82,8 @@ schema CloudplatformGcpUpboundIoV1beta1ProjectSpec:
     managementPolicies?: [str] = ["*"]
 
     providerConfigRef?: CloudplatformGcpUpboundIoV1beta1ProjectSpecProviderConfigRef
+
+    publishConnectionDetailsTo?: CloudplatformGcpUpboundIoV1beta1ProjectSpecPublishConnectionDetailsTo
 
     writeConnectionSecretToRef?: CloudplatformGcpUpboundIoV1beta1ProjectSpecWriteConnectionSecretToRef
 
@@ -103,7 +107,7 @@ schema CloudplatformGcpUpboundIoV1beta1ProjectSpecForProvider:
         for more details.
     deletionPolicy : str, default is Undefined, optional
         The deletion policy for the Project. Setting ABANDON allows the resource
-        to be abandoned rather than deleted, i.e. Possible values are: "PREVENT", "ABANDON", "DELETE". Default value is PREVENT.
+        to be abandoned rather than deleted, i.e. Possible values are: "PREVENT", "ABANDON", "DELETE". Default value is DELETE.
     folderId : str, default is Undefined, optional
         The numeric ID of the folder this project should be
         created under. Only one of org_id or folder_id may be
@@ -130,8 +134,11 @@ schema CloudplatformGcpUpboundIoV1beta1ProjectSpecForProvider:
         The numeric ID of the organization this project belongs to.
     projectId : str, default is Undefined, optional
         The project ID. Changing this forces a new project to be created.
-    tags : {str:str}, default is Undefined, optional
-        A map of resource manager tags. Resource manager tag keys and values have the same definition as resource manager tags. Keys must be in the format tagKeys/{tag_key_id}, and values are in the format tagValues/456. The field is ignored when empty. The field is immutable and causes resource replacement when mutated. This field is only set at create time and modifying this field after creation will trigger recreation. To apply tags to an existing resource, see the google_tags_tag_value resource.
+    skipDelete : bool, default is Undefined, optional
+        skip_delete is deprecated and will be
+        removed in 6.0.0. Please use deletion_policy instead. A skip_delete value of false
+        can be changed to a deletion_policy value of DELETE and a skip_delete value of true
+        to a deletion_policy value of ABANDON for equivalent behavior.
     """
 
 
@@ -155,7 +162,7 @@ schema CloudplatformGcpUpboundIoV1beta1ProjectSpecForProvider:
 
     projectId?: str
 
-    tags?: {str:str}
+    skipDelete?: bool
 
 
 schema CloudplatformGcpUpboundIoV1beta1ProjectSpecForProviderFolderIDRef:
@@ -275,7 +282,7 @@ schema CloudplatformGcpUpboundIoV1beta1ProjectSpecInitProvider:
         for more details.
     deletionPolicy : str, default is Undefined, optional
         The deletion policy for the Project. Setting ABANDON allows the resource
-        to be abandoned rather than deleted, i.e. Possible values are: "PREVENT", "ABANDON", "DELETE". Default value is PREVENT.
+        to be abandoned rather than deleted, i.e. Possible values are: "PREVENT", "ABANDON", "DELETE". Default value is DELETE.
     folderId : str, default is Undefined, optional
         The numeric ID of the folder this project should be
         created under. Only one of org_id or folder_id may be
@@ -302,8 +309,11 @@ schema CloudplatformGcpUpboundIoV1beta1ProjectSpecInitProvider:
         The numeric ID of the organization this project belongs to.
     projectId : str, default is Undefined, optional
         The project ID. Changing this forces a new project to be created.
-    tags : {str:str}, default is Undefined, optional
-        A map of resource manager tags. Resource manager tag keys and values have the same definition as resource manager tags. Keys must be in the format tagKeys/{tag_key_id}, and values are in the format tagValues/456. The field is ignored when empty. The field is immutable and causes resource replacement when mutated. This field is only set at create time and modifying this field after creation will trigger recreation. To apply tags to an existing resource, see the google_tags_tag_value resource.
+    skipDelete : bool, default is Undefined, optional
+        skip_delete is deprecated and will be
+        removed in 6.0.0. Please use deletion_policy instead. A skip_delete value of false
+        can be changed to a deletion_policy value of DELETE and a skip_delete value of true
+        to a deletion_policy value of ABANDON for equivalent behavior.
     """
 
 
@@ -327,7 +337,7 @@ schema CloudplatformGcpUpboundIoV1beta1ProjectSpecInitProvider:
 
     projectId?: str
 
-    tags?: {str:str}
+    skipDelete?: bool
 
 
 schema CloudplatformGcpUpboundIoV1beta1ProjectSpecInitProviderFolderIDRef:
@@ -463,12 +473,112 @@ schema CloudplatformGcpUpboundIoV1beta1ProjectSpecProviderConfigRefPolicy:
     resolve?: "Always" | "IfNotPresent"
 
 
+schema CloudplatformGcpUpboundIoV1beta1ProjectSpecPublishConnectionDetailsTo:
+    r"""
+    PublishConnectionDetailsTo specifies the connection secret config which
+    contains a name, metadata and a reference to secret store config to
+    which any connection details for this managed resource should be written.
+    Connection details frequently include the endpoint, username,
+    and password required to connect to the managed resource.
+
+    Attributes
+    ----------
+    configRef : CloudplatformGcpUpboundIoV1beta1ProjectSpecPublishConnectionDetailsToConfigRef, default is Undefined, optional
+        config ref
+    metadata : CloudplatformGcpUpboundIoV1beta1ProjectSpecPublishConnectionDetailsToMetadata, default is Undefined, optional
+        metadata
+    name : str, default is Undefined, required
+        Name is the name of the connection secret.
+    """
+
+
+    configRef?: CloudplatformGcpUpboundIoV1beta1ProjectSpecPublishConnectionDetailsToConfigRef
+
+    metadata?: CloudplatformGcpUpboundIoV1beta1ProjectSpecPublishConnectionDetailsToMetadata
+
+    name: str
+
+
+schema CloudplatformGcpUpboundIoV1beta1ProjectSpecPublishConnectionDetailsToConfigRef:
+    r"""
+    SecretStoreConfigRef specifies which secret store config should be used
+    for this ConnectionSecret.
+
+    Attributes
+    ----------
+    name : str, default is Undefined, required
+        Name of the referenced object.
+    policy : CloudplatformGcpUpboundIoV1beta1ProjectSpecPublishConnectionDetailsToConfigRefPolicy, default is Undefined, optional
+        policy
+    """
+
+
+    name: str
+
+    policy?: CloudplatformGcpUpboundIoV1beta1ProjectSpecPublishConnectionDetailsToConfigRefPolicy
+
+
+schema CloudplatformGcpUpboundIoV1beta1ProjectSpecPublishConnectionDetailsToConfigRefPolicy:
+    r"""
+    Policies for referencing.
+
+    Attributes
+    ----------
+    resolution : str, default is "Required", optional
+        Resolution specifies whether resolution of this reference is required.
+        The default is 'Required', which means the reconcile will fail if the
+        reference cannot be resolved. 'Optional' means this reference will be
+        a no-op if it cannot be resolved.
+    resolve : str, default is Undefined, optional
+        Resolve specifies when this reference should be resolved. The default
+        is 'IfNotPresent', which will attempt to resolve the reference only when
+        the corresponding field is not present. Use 'Always' to resolve the
+        reference on every reconcile.
+    """
+
+
+    resolution?: "Required" | "Optional" = "Required"
+
+    resolve?: "Always" | "IfNotPresent"
+
+
+schema CloudplatformGcpUpboundIoV1beta1ProjectSpecPublishConnectionDetailsToMetadata:
+    r"""
+    Metadata is the metadata for connection secret.
+
+    Attributes
+    ----------
+    annotations : {str:str}, default is Undefined, optional
+        Annotations are the annotations to be added to connection secret.
+        - For Kubernetes secrets, this will be used as "metadata.annotations".
+        - It is up to Secret Store implementation for others store types.
+    labels : {str:str}, default is Undefined, optional
+        Labels are the labels/tags to be added to connection secret.
+        - For Kubernetes secrets, this will be used as "metadata.labels".
+        - It is up to Secret Store implementation for others store types.
+    $type : str, default is Undefined, optional
+        Type is the SecretType for the connection secret.
+        - Only valid for Kubernetes Secret Stores.
+    """
+
+
+    annotations?: {str:str}
+
+    labels?: {str:str}
+
+    $type?: str
+
+
 schema CloudplatformGcpUpboundIoV1beta1ProjectSpecWriteConnectionSecretToRef:
     r"""
     WriteConnectionSecretToReference specifies the namespace and name of a
     Secret to which any connection details for this managed resource should
     be written. Connection details frequently include the endpoint, username,
     and password required to connect to the managed resource.
+    This field is planned to be replaced in a future release in favor of
+    PublishConnectionDetailsTo. Currently, both could be set independently
+    and connection details would be published to both without affecting
+    each other.
 
     Attributes
     ----------
@@ -527,7 +637,7 @@ schema CloudplatformGcpUpboundIoV1beta1ProjectStatusAtProvider:
         for more details.
     deletionPolicy : str, default is Undefined, optional
         The deletion policy for the Project. Setting ABANDON allows the resource
-        to be abandoned rather than deleted, i.e. Possible values are: "PREVENT", "ABANDON", "DELETE". Default value is PREVENT.
+        to be abandoned rather than deleted, i.e. Possible values are: "PREVENT", "ABANDON", "DELETE". Default value is DELETE.
     effectiveLabels : {str:str}, default is Undefined, optional
         effective labels
     folderId : str, default is Undefined, optional
@@ -556,8 +666,11 @@ schema CloudplatformGcpUpboundIoV1beta1ProjectStatusAtProvider:
         The numeric ID of the organization this project belongs to.
     projectId : str, default is Undefined, optional
         The project ID. Changing this forces a new project to be created.
-    tags : {str:str}, default is Undefined, optional
-        A map of resource manager tags. Resource manager tag keys and values have the same definition as resource manager tags. Keys must be in the format tagKeys/{tag_key_id}, and values are in the format tagValues/456. The field is ignored when empty. The field is immutable and causes resource replacement when mutated. This field is only set at create time and modifying this field after creation will trigger recreation. To apply tags to an existing resource, see the google_tags_tag_value resource.
+    skipDelete : bool, default is Undefined, optional
+        skip_delete is deprecated and will be
+        removed in 6.0.0. Please use deletion_policy instead. A skip_delete value of false
+        can be changed to a deletion_policy value of DELETE and a skip_delete value of true
+        to a deletion_policy value of ABANDON for equivalent behavior.
     terraformLabels : {str:str}, default is Undefined, optional
         The combination of labels configured directly on the resource and default labels configured on the provider.
     """
@@ -585,7 +698,7 @@ schema CloudplatformGcpUpboundIoV1beta1ProjectStatusAtProvider:
 
     projectId?: str
 
-    tags?: {str:str}
+    skipDelete?: bool
 
     terraformLabels?: {str:str}
 
