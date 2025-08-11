@@ -113,5 +113,5 @@ _get_image: (any, str, str) -> any = lambda _provSettings, _imageLabel, _zone {
         name = z.name
         nameLabel = z.nameLabel
         generation = z.generation or Undefined
-    } for z in _images?.zones if _images and z.zone == _zone and z.nameLabel == _imageLabel]?[0]
+    } for z in _images if _images and z.zone == _zone and z.nameLabel == _imageLabel]?[0]
 }
