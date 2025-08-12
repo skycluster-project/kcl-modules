@@ -115,3 +115,29 @@ _get_image: (any, str, str) -> any = lambda _provSettings, _imageLabel, _zone {
         generation = z.generation or Undefined
     } for z in _images if _images and z.zone == _zone and z.nameLabel == _imageLabel]?[0]
 }
+
+# Calculate a new CIDR subnet based on an existing CIDR and additional bits
+# Temporary function for net.CIDR_subnet to be released in KCL
+_net_CIDR_subnet = lambda cidr, additional_bits, num_bits {
+  ip_str = cidr.split("/")[0]
+  base_len = int(cidr.split("/")[1])
+
+  # Calculate new prefix length
+  len = base_len + additional_bits
+
+  # Convert base IP to integer
+  parts = [int(p) for p in ip_str.split(".")]
+  base_ip = parts[0] << 24 | parts[1] << 16 | parts[2] << 8 | parts[3]
+
+  # Add subnet offset and mask to network address
+  new_ip_num = (base_ip + (num_bits << (32 - len))) & (~((1 << (32 - len)) - 1) & 0xFFFFFFFF)
+
+  # Convert back to dotted string
+  a = (new_ip_num >> 24) & 0xFF
+  b = (new_ip_num >> 16) & 0xFF
+  c = (new_ip_num >> 8) & 0xFF
+  d = new_ip_num & 0xFF
+
+  # Final CIDR string
+  "{}.{}.{}.{}/{}".format(a, b, c, d, len)
+}
