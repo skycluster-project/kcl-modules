@@ -87,8 +87,8 @@ _select_init_scripts: (any, [str]) -> str = lambda _scripts, names {
 # the value must be a valid JSON string, example:
 # [{"apiVersion":"identity.openstack.crossplane.io/v1alpha1","kind":"ProjectV3","id":"uuid"}]
 _external_resources: (any, str, str) -> any = lambda labels, av, ki {
-  l1 = [v for k, v in labels if labels and "skycluster.io/external-resources" == k.lower() and json.validate(v)][0]
-  l2 = json.decode(l1) if l1 else Undefined
+  l1 = [v for k, v in labels if labels and "skycluster.io/external-resources" == k.lower() and json.validate(v)]?[0]
+  l2 = json.decode(l1) if l1 else []
   filtered = [e for e in l2 if e["apiVersion"] and e["kind"] and e["apiVersion"].lower() == av.lower() and e["kind"].lower() == ki.lower() ]
   ext_id = filtered[0]?.id if filtered and len(filtered) == 1 else Undefined
   # If it does not exist, try name
@@ -99,8 +99,8 @@ _external_resources: (any, str, str) -> any = lambda labels, av, ki {
 }
 
 _management_policy: (any, str, str) -> any = lambda labels, av, ki {
-  l1 = [v for k, v in labels if labels and "skycluster.io/external-resources" == k.lower() and json.validate(v)][0]
-  l2 = json.decode(l1) if l1 else Undefined
+  l1 = [v for k, v in labels if labels and "skycluster.io/external-resources" == k.lower() and json.validate(v)]?[0]
+  l2 = json.decode(l1) if l1 else []
   filtered = [e for e in l2 if e["apiVersion"] and e["kind"] and e["apiVersion"].lower() == av.lower() and e["kind"].lower() == ki.lower() ]
   {managementPolicies = ["Observe"]} if len(filtered) > 0 else {managementPolicies = ["*"]} 
 }
