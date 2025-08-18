@@ -83,20 +83,26 @@ _select_init_scripts: (any, [str]) -> str = lambda _scripts, names {
     _append_init_scripts(_yamls) if len(_selected) > 0 else Undefined
 }
 
-
 # Labels can contains a reference to an external resource, 
 # the value must be a valid JSON string, example:
-# [{"apiVersion":"identity.openstack.io/v1alpha1","kind":"ProjectV3","id":"uuid"}]
-_external_resources: ({str:str}, str, str) -> {str: str} = lambda labels, av, ki {
-  ext_labels = [json.decode(v) for _, v in labels if labels and json.validate(v)]
-  filtered = [i for i in ext_labels if i["apiVersion"] and i["kind"] and i["apiVersion"].lower() == av.lower() and i["kind"].lower() == ki.lower()]
-  # First try id
+# [{"apiVersion":"identity.openstack.crossplane.io/v1alpha1","kind":"ProjectV3","id":"uuid"}]
+_external_resources: (any, str, str) -> any = lambda labels, av, ki {
+  l1 = [v for k, v in labels if labels and "skycluster.io/external-resources" == k.lower() and json.validate(v)][0]
+  l2 = json.decode(l1) if l1 else Undefined
+  filtered = [e for e in l2 if e["apiVersion"] and e["kind"] and e["apiVersion"].lower() == av.lower() and e["kind"].lower() == ki.lower() ]
   ext_id = filtered[0]?.id if filtered and len(filtered) == 1 else Undefined
   # If it does not exist, try name
   ext_name = filtered[0]?.name if (not ext_id and filtered) and len(filtered) == 1 else Undefined
   {
     "crossplane.io/external-name": ext_id if ext_id else ext_name if ext_name else Undefined,
   } if ext_id or ext_name else Undefined
+}
+
+_management_policy: (any, str, str) -> any = lambda labels, av, ki {
+  l1 = [v for k, v in labels if labels and "skycluster.io/external-resources" == k.lower() and json.validate(v)][0]
+  l2 = json.decode(l1) if l1 else Undefined
+  filtered = [e for e in l2 if e["apiVersion"] and e["kind"] and e["apiVersion"].lower() == av.lower() and e["kind"].lower() == ki.lower() ]
+  {managementPolicies = ["Observe"]} if len(filtered) > 0 else {managementPolicies = ["*"]} 
 }
 
 # Retrieve the instance type from the providerSettings object
