@@ -1,4 +1,5 @@
 import yaml
+import json
 
 # Helper functions
 _build_default_labels: (any, str, str, str, str) -> {str: str} = lambda labels, p, r, z, n {
@@ -82,13 +83,29 @@ _select_init_scripts: (any, [str]) -> str = lambda _scripts, names {
     _append_init_scripts(_yamls) if len(_selected) > 0 else Undefined
 }
 
+
+# Labels can contains a reference to an external resource, 
+# the value must be a valid JSON string, example:
+# [{"apiVersion":"identity.openstack.io/v1alpha1","kind":"ProjectV3","id":"uuid"}]
+_external_resources: ({str:str}, str, str) -> {str: str} = lambda labels, av, ki {
+  ext_labels = [json.decode(v) for _, v in labels if labels and json.validate(v)]
+  filtered = [i for i in ext_labels if i["apiVersion"] and i["kind"] and i["apiVersion"].lower() == av.lower() and i["kind"].lower() == ki.lower()]
+  # First try id
+  ext_id = filtered[0]?.id if filtered and len(filtered) == 1 else Undefined
+  # If it does not exist, try name
+  ext_name = filtered[0]?.name if (not ext_id and filtered) and len(filtered) == 1 else Undefined
+  {
+    "crossplane.io/external-name": ext_id if ext_id else ext_name if ext_name else Undefined,
+  } if ext_id or ext_name else Undefined
+}
+
 # Retrieve the instance type from the providerSettings object
 _get_instance_type: (any, str, str) -> [str] = lambda _provSettings, _itLabel, _zone {
     _itypesYaml = yaml.decode(_provSettings?.data?["flavors.yaml"]) \
         if _provSettings?.data?["flavors.yaml"] else Undefined
 
     # we expect one member: (flavors (list), zoneName)
-    _itypesZone = [fz.flavors for fz in _itypesYaml if fz.zone == _zone]
+    _itypesZone = [fz.zoneOfferings for fz in _itypesYaml if fz.zone == _zone]
     _itypes = [{
         ram = fl.ram
         cpu = fl.cpu
