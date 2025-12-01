@@ -1,5 +1,6 @@
 import yaml
 import json
+import regex
 
 # Helper functions
 _build_default_labels: (any, str, str, str, str) -> {str: str} = lambda labels, p, r, z, n {
@@ -20,56 +21,56 @@ _build_default_labels: (any, str, str, str, str) -> {str: str} = lambda labels, 
 # Input: provider platform, region, zone, name
 # Output: labels dictionary
 _set_default_labels: (str, str, str, str) -> {str: str} = lambda p, r, z, n {
-    _build_default_labels({}, p, r, z, n)
+  _build_default_labels({}, p, r, z, n)
 }
 
 # Set composition resource name
 _set_resource_name: (str) -> {str: str} = lambda name: str {
-    { "krm.kcl.dev/composition-resource-name" = name } 
+  { "krm.kcl.dev/composition-resource-name" = name } 
 }
 
 _is_paused_label: ({:}) -> {:} = lambda labels: {:} -> {:} {
-    { "crossplane.io/paused" = "true" } if labels is not Undefined and "skycluster.io/pause" in labels else {}
+  { "crossplane.io/paused" = "true" } if labels is not Undefined and "skycluster.io/pause" in labels else {}
 }
 
 # Filter SkyCluster labels from a dictionary
 _filter_sky_labels: ({:}) -> {:} = lambda labels: {:} -> {:} {
-    {k = v for k, v in labels if "skycluster.io" in k.lower()}
+  {k = v for k, v in labels if "skycluster.io" in k.lower()}
 }
 
 # Filter default labels from a dictionary
 # A provider is identified by its platform, region, zone uniquely
 _filter_default_labels: ({:}) -> {:} = lambda labels: {:} -> {:} {
-    ll = [
-        "skycluster.io/application-id",
-        "skycluster.io/provider-platform",
-        "skycluster.io/provider-region",
-        "skycluster.io/provider-zone",
-        "skycluster.io/managed-by",
-    ]
-    {k = v for k, v in labels if k.lower() in ll}
+  ll = [
+    "skycluster.io/application-id",
+    "skycluster.io/provider-platform",
+    "skycluster.io/provider-region",
+    "skycluster.io/provider-zone",
+    "skycluster.io/managed-by",
+  ]
+  {k = v for k, v in labels if k.lower() in ll}
 }
 
 # Filter labels based on a list of fields
 _filter_labels: ({str:str},[str]) -> {:} = lambda labels: {:}, fields -> {:} {
-    {k = v for k, v in labels if any_true([f.lower() in k.lower() for f in fields])}
+  {k = v for k, v in labels if any_true([f.lower() in k.lower() for f in fields])}
 }
 
 _ready = lambda o: any -> bool {
-    _status = o?.Resource?.status
-    _objstatus = _status?.conditions or []
-    o and _status and len(_objstatus) > 0 and all_true([c.status == "True" for c in _objstatus])
+  _status = o?.Resource?.status
+  _objstatus = _status?.conditions or []
+  o and _status and len(_objstatus) > 0 and all_true([c.status == "True" for c in _objstatus])
 }
 
 _append_init_scripts: (any) -> str = lambda _yamlScripts {   
-    _writeFiles = [vv for y in _yamlScripts for k, v in y if k == "write_files" for vv in v]
-    
-    _runCmds = [vv for y in _yamlScripts for k, v in y if k == "runcmd" for vv in v]
+  _writeFiles = [vv for y in _yamlScripts for k, v in y if k == "write_files" for vv in v]
+  
+  _runCmds = [vv for y in _yamlScripts for k, v in y if k == "runcmd" for vv in v]
 
-    _yamlOut = yaml.encode({
-        "write_files": _writeFiles,
-        "runcmd": _runCmds,
-    })
+  _yamlOut = yaml.encode({
+    "write_files": _writeFiles,
+    "runcmd": _runCmds,
+  })
     
 """\
 #cloud-config
@@ -78,9 +79,9 @@ _append_init_scripts: (any) -> str = lambda _yamlScripts {
 }
 
 _select_init_scripts: (any, [str]) -> str = lambda _scripts, names {
-    _selected = [s.data?["cloud-init"] for s in _scripts for n in names if s and n.lower() == s.metadata?.labels["skycluster.io/script-init"]]
-    _yamls = [yaml.decode(s) for s in _selected if s]
-    _append_init_scripts(_yamls) if len(_selected) > 0 else Undefined
+  _selected = [s.data?["cloud-init"] for s in _scripts for n in names if s and n.lower() == s.metadata?.labels["skycluster.io/script-init"]]
+  _yamls = [yaml.decode(s) for s in _selected if s]
+  _append_init_scripts(_yamls) if len(_selected) > 0 else Undefined
 }
 
 # Labels can contains a reference to an external resource, 
@@ -105,38 +106,64 @@ _management_policy: (any, str, str) -> any = lambda labels, av, ki {
   {managementPolicies = ["Observe"]} if len(filtered) > 0 else {managementPolicies = ["*"]} 
 }
 
-# Retrieve the instance type from the providerSettings object
+# Convert a glob-style pattern (with `*` wildcards) into a regex string.
+_glob_to_regex = lambda pat {
+  # Escape regex special chars, then convert '*' back into '.*'
+  _escaped = pat.replace("\\", "\\\\").replace(".", "\\.").replace("+", "\\+").replace("?", "\\?").replace("(", "\\(").replace(")", "\\)").replace("[", "\\[").replace("]", "\\]").replace("{", "\\{").replace("}", "\\}").replace("^", "\\^").replace("$", "\\$").replace("|", "\\|")
+  # Now handle the glob wildcard
+  _escaped.replace("*", ".*")
+}
+# Check if a label matches a pattern that may contain '*' wildcards
+_label_matches_pattern = lambda label, pattern {
+  # if the pattern is empty/Undefined, treat as no match
+  _match = False
+  if not pattern:
+    _match = False
+  else:
+    _regex = _glob_to_regex(pattern)
+    # full-string match: ^...$
+    _match = regex.match(label, "^{}$".format(_regex))
+  _match
+}
+# Retrieve all instance types whose nameLabel matches (supports '*' wildcard)
 _get_instance_type: (any, str, str) -> [str] = lambda _provSettings, _itLabel, _zone {
-    _itypesYaml = yaml.decode(_provSettings?.data?["flavors.yaml"]) \
-        if _provSettings?.data?["flavors.yaml"] else Undefined
+  _itypesYaml = yaml.decode(_provSettings?.data?["flavors.yaml"]) \
+    if _provSettings?.data?["flavors.yaml"] else Undefined
+  # Filter to the zone we care about
+  _itypesZone = [fz.zoneOfferings for fz in _itypesYaml if fz.zone == _zone]
 
-    # we expect one member: (flavors (list), zoneName)
-    _itypesZone = [fz.zoneOfferings for fz in _itypesYaml if fz.zone == _zone]
+  _output = []
+  # If zone not found or has no offerings, return empty list
+  if len(_itypesZone) == 0:
+    _output = []
+  else:
     _itypes = [{
-        ram = fl.ram
-        cpu = fl.cpu
-        name = fl.name
-        nameLabel = fl.nameLabel
-        generation = fl.generation
-        price = fl.price
+      ram = fl.ram
+      # use vcpus field from YAML
+      cpu = fl.vcpus
+      name = fl.name
+      nameLabel = fl.nameLabel
+      generation = fl.generation if fl.generation else Undefined
+      price = fl.price
     } for fl in _itypesZone[0]]
-
-    # There can be multiple instance types with the same label (i.e. 2vCPU-4GB)
-    # We return all of them that match the label
-    [d.name for d in _itypes if d.nameLabel == _itLabel]
+    # Support literal or wildcard matching on nameLabel
+    _output = [d.name for d in _itypes if _label_matches_pattern(d.nameLabel, _itLabel)]
+  # return the output list
+  _output
 }
 
-_get_image: (any, str, str) -> any = lambda _provSettings, _imageLabel, _zone {
-    _images = yaml.decode(_provSettings?.data?["images.yaml"]) \
-       if _provSettings?.data?["images.yaml"] else Undefined
 
-    # If there are multiple images with same label (i.e. ubuntu-24.04), we ignore them
-    # and return the first one that matches the zone and label
-    [{
-        name = z.name
-        nameLabel = z.nameLabel
-        generation = z.generation or Undefined
-    } for z in _images if _images and z.zone == _zone and z.nameLabel == _imageLabel]?[0]
+_get_image: (any, str, str) -> any = lambda _provSettings, _imageLabel, _zone {
+  _images = yaml.decode(_provSettings?.data?["images.yaml"]) \
+    if _provSettings?.data?["images.yaml"] else Undefined
+
+  # If there are multiple images with same label (i.e. ubuntu-24.04), we ignore them
+  # and return the first one that matches the zone and label
+  [{
+    name = z.name
+    nameLabel = z.nameLabel
+    generation = z.generation or Undefined
+  } for z in _images if _images and z.zone == _zone and z.nameLabel == _imageLabel]?[0]
 }
 
 # Calculate a new CIDR subnet based on an existing CIDR and additional bits
